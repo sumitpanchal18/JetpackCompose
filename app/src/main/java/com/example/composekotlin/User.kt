@@ -1,6 +1,9 @@
 package com.example.composekotlin
+import retrofit2.http.GET
 
-data class User(
-    val name: String,
-    val email: String
-)
+data class ApiResponse(val id: Int, val name: String)
+
+interface ApiService {
+    @GET("users")
+    suspend fun getData(): List<ApiResponse>
+}

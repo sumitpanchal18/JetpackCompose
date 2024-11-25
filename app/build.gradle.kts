@@ -83,4 +83,9 @@ dependencies {
     // Coroutine support for Retrofit
     implementation(libs.kotlinx.coroutines.android)
 
+
+// Lifecycle and ViewModel for managing UI-related data
+    implementation (libs.androidx.lifecycle.runtime.ktx.v262)
+    implementation (libs.androidx.lifecycle.viewmodel.compose)
+
 }
