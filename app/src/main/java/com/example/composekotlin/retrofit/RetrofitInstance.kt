@@ -1,10 +1,11 @@
-package com.example.composekotlin
+package com.example.composekotlin.retrofit
 
+// RetrofitInstance.kt
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitInstance {
-    private const val BASE_URL = "https://your-api-url.com/"
+    private const val BASE_URL = "https://jsonplaceholder.typicode.com/" // Example API URL
 
     val api: ApiService by lazy {
         Retrofit.Builder()

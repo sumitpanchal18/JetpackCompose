@@ -14,12 +14,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -36,6 +39,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.composekotlin.retrofit.UserListScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,9 +52,8 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MyApp() {
-    val context = LocalContext.current
 //    NavController()
-    ToggleExample(context)
+    UserListScreen()
 }
 
 @Composable
@@ -65,6 +68,70 @@ fun NavController() {
         }
         composable("details") {
             DetailsScreen(navController)
+        }
+        composable("other") {
+            PracticeScreen(navController)
+        }
+    }
+}
+
+@Composable
+fun PracticeScreen(navController: NavHostController) {
+//    SimpleList()
+    var showDialog by remember { mutableStateOf(false) }
+
+    // Button to show the dialog
+    Button(onClick = { showDialog = true }) {
+        Text("Submit")
+    }
+
+    // Call the SimpleDialog and pass the state and dismiss callback
+    SimpleDialog(showDialog = showDialog, onDismiss = {
+        println("Dismissed")
+        showDialog = false // Dismiss the dialog by setting the state to false
+    })
+
+
+//    InputField()
+}
+
+@Composable
+fun InputField() {
+    var text by remember { mutableStateOf("") }
+
+    Column(modifier = Modifier.padding(16.dp)) {
+        TextField(
+            value = text,
+            onValueChange = { text = it },
+            label = { Text("Enter Text") }
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text("You typed: $text")
+    }
+}
+
+@Composable
+fun SimpleDialog(showDialog: Boolean, onDismiss: () -> Unit) {
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { onDismiss() },
+            title = { Text("Title") },
+            text = { Text("This is a simple dialog.") },
+            confirmButton = {
+                Button(onClick = { onDismiss() }) {
+                    Text("OK")
+                }
+            }
+        )
+    }
+}
+
+
+@Composable
+fun SimpleList() {
+    LazyColumn {
+        items(100) { index ->
+            Text("Item No : ${index + 1}", modifier = Modifier.padding(8.dp))
         }
     }
 }
@@ -93,11 +160,15 @@ fun HomeScreen(navController: NavHostController) {
 
 @Composable
 fun DetailsScreen(navController: NavHostController) {
+
+    val context = LocalContext.current
+    ToggleExample(context)
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.Bottom,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
@@ -105,7 +176,10 @@ fun DetailsScreen(navController: NavHostController) {
             style = MaterialTheme.typography.headlineMedium
         )
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = { navController.popBackStack() }) {
+        Button(onClick = {
+//            navController.popBackStack()
+            navController.navigate("other")
+        }) {
             Text("Go Back to Home Screen")
         }
     }
@@ -168,20 +242,36 @@ fun ToggleExample(context: Context) {
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        BoxExample()
-        /* IconButton(
-             onClick = {
-                 Toast.makeText(context, "Image Button Clicked!", Toast.LENGTH_SHORT).show()
+//        BoxExample()
 
-             },
-             modifier = Modifier.size(200.dp, 200.dp)
-         ) {
-             Image(
-                 painter = painterResource(id = R.drawable.car),
-                 contentDescription = "Button Image",
-                 modifier = Modifier.fillMaxSize()
-             )
-         }*/
+        Counter()
+
+        /*
+                 IconButton(
+                     onClick = {
+                         Toast.makeText(context, "Image Button Clicked!", Toast.LENGTH_SHORT).show()
+
+                     },
+                     modifier = Modifier.size(200.dp, 200.dp)
+                 ) {
+                     Image(
+                         painter = painterResource(id = R.drawable.car),
+                         contentDescription = "Button Image",
+                         modifier = Modifier.fillMaxSize()
+                     )
+                 }*/
+    }
+}
+
+@Composable
+fun Counter() {
+    var count by remember { mutableStateOf(0) }
+
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(text = "Count: $count", fontSize = 24.sp)
+        Button(onClick = { count++ }) {
+            Text("Increment")
+        }
     }
 }
 
