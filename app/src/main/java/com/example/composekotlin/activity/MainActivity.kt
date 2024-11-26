@@ -1,4 +1,4 @@
-package com.example.composekotlin
+package com.example.composekotlin.activity
 
 import android.content.Context
 import android.os.Bundle
@@ -39,7 +39,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.composekotlin.retrofit.UserListScreen
+import com.example.composekotlin.contact.retrofit.UserListScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,8 +52,9 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MyApp() {
-//    NavController()
-    UserListScreen()
+    NavController()
+//    val navController = rememberNavController()
+
 }
 
 @Composable
@@ -61,8 +62,11 @@ fun NavController() {
     val navController = rememberNavController()
     NavHost(
         navController = navController,
-        startDestination = "home"
+        startDestination = "userList"
     ) {
+        composable("userList") { // Route for UserListScreen
+            UserListScreen(navController)
+        }
         composable("home") {
             HomeScreen(navController)
         }
@@ -72,8 +76,16 @@ fun NavController() {
         composable("other") {
             PracticeScreen(navController)
         }
+        composable("addContact") {
+            AddContact(navController)
+        }
+        composable("updateContact") {
+            UpdateContact(navController)
+        }
+
     }
 }
+
 
 @Composable
 fun PracticeScreen(navController: NavHostController) {

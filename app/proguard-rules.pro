@@ -27,3 +27,18 @@
 -dontwarn android.app.ResourcesManager
 -dontwarn android.content.res.Configuration
 
+
+# Ignore warnings related to accessing hidden APIs
+#-dontwarn android.app.ResourcesManager
+#-dontwarn android.content.res.ApkAssets
+#-dontwarn android.content.res.Configuration
+
+
+# Keep application-level code from being obfuscated
+#-keep class com.example.composekotlin.** { *; }
+
+# Allow access to required hidden APIs (ignoring the greylist and blacklist warnings)
+# These rules disable obfuscation for specific packages or methods that access hidden APIs.
+# This is to prevent the app from crashing due to hidden API access issues.
+
+# Allow access to resources manager-related fields
