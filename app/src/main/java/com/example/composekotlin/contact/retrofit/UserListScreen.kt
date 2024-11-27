@@ -51,6 +51,7 @@ fun UserListScreen(navController: NavHostController) {
     }
 
     Scaffold(
+
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
@@ -75,6 +76,20 @@ fun UserListScreen(navController: NavHostController) {
                     .height(15.dp)
                     .background(Color.White)
             )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White),
+                contentAlignment = Alignment.Center
+
+            ) {
+                Text(
+                    "Contact List", style = TextStyle(
+//                        fontWeight = FontWeight.Bold,
+                        fontSize = 30.sp
+                    )
+                )
+            }
 
             Box(
                 modifier = Modifier
@@ -99,18 +114,7 @@ fun UserListScreen(navController: NavHostController) {
                     }
                 }
             }
-            /*      Box(
-                      modifier = Modifier
-                          .fillMaxWidth()
-                          .padding(bottom = 15.dp),
-                      contentAlignment = Alignment.BottomCenter
-                  ) {
-                      Button(onClick = {
-                          apiViewModel.fetchUsersFromApi()
-                      }) {
-                          Text("Fetch Api Data")
-                      }
-                  }*/
+
         }
     }
 }
