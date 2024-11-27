@@ -12,25 +12,33 @@ import kotlinx.coroutines.withContext
 import retrofit2.Response
 
 class ApiViewModel(
-    private val apiService: ApiService, // Retrofit service for fetching data from the API
-    private val userDao: UserDao       // Room DAO for interacting with the database
+    private val apiService: ApiService,
+    private val userDao: UserDao
 ) : ViewModel() {
 
-    // State to hold the list of users and loading state
     val users = mutableStateOf<List<UserEntity>>(emptyList())
     val loading = mutableStateOf(false)
+    fun addContact(userEntity: UserEntity) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                userDao.insert(userEntity)
 
-    // Function to fetch users from the API and store them in Room database
+                val updatedUsers = userDao.getAllUsers()
+                withContext(Dispatchers.Main) {
+                    users.value = updatedUsers
+                }
+            }
+        }
+    }
+
     fun fetchUsersFromApi() {
         viewModelScope.launch {
             loading.value = true
             try {
                 val response: Response<List<UserEntity>> = apiService.getUsers()
 
-                // Log the response from the API
                 if (response.isSuccessful && response.body() != null) {
                     val fetchedUsers = response.body()!!
-                    // Log the fetched users
                     println("Fetched users from API: $fetchedUsers")
                     insertUsersIntoDatabase(fetchedUsers)
                 } else {
@@ -46,14 +54,11 @@ class ApiViewModel(
 
     private suspend fun insertUsersIntoDatabase(usersList: List<UserEntity>) {
         withContext(Dispatchers.IO) {
-            // Insert the users into the database
             userDao.insertAll(usersList)
 
-            // Fetch the users from the database
             val usersFromDb = userDao.getAllUsers()
             Log.d("ApiViewModel", "Users from DB after insertion: $usersFromDb")
 
-            // Update the UI state with the data from the database
             withContext(Dispatchers.Main) {
                 users.value = usersFromDb
             }

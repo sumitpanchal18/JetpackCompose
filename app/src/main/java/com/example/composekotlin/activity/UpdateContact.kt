@@ -117,9 +117,8 @@ fun UpdateContact(navController: NavHostController? = null) {
 
         Button(
             onClick = {
-                navController?.navigate("home") {
-                    popUpTo("userList") { inclusive = true }  // Clears the back stack up to 'home'
-                }
+               navController!!.popBackStack()
+               navController.popBackStack()
             },
             modifier = Modifier
                 .padding(top = 12.dp)
