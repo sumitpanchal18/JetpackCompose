@@ -13,4 +13,6 @@ interface ApiService {
 
     @POST("users")
     suspend fun addUser(@Body user: UserEntity)
+
+
 }

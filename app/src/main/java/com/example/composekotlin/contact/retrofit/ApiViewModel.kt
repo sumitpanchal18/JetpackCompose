@@ -18,15 +18,36 @@ class ApiViewModel(
 
     val users = mutableStateOf<List<UserEntity>>(emptyList())
     val loading = mutableStateOf(false)
+
     fun addContact(userEntity: UserEntity) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 userDao.insert(userEntity)
+                updateUsersState()
+            }
+        }
+    }
 
-                val updatedUsers = userDao.getAllUsers()
-                withContext(Dispatchers.Main) {
-                    users.value = updatedUsers
-                }
+    fun deleteContact(contact: UserEntity) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                userDao.deleteUser(contact)
+                updateUsersState()
+            }
+        }
+    }
+
+    suspend fun getUserById(id: Int): UserEntity? {
+        return withContext(Dispatchers.IO) {
+            userDao.getUserById(id)
+        }
+    }
+
+    fun updateContact(contact: UserEntity) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                userDao.updateUser(contact)
+                updateUsersState()
             }
         }
     }
@@ -36,11 +57,10 @@ class ApiViewModel(
             loading.value = true
             try {
                 val response: Response<List<UserEntity>> = apiService.getUsers()
-
                 if (response.isSuccessful && response.body() != null) {
                     val fetchedUsers = response.body()!!
                     println("Fetched users from API: $fetchedUsers")
-                    insertUsersIntoDatabase(fetchedUsers)
+                    insertMissingUsers(fetchedUsers)
                 } else {
                     println("Failed to fetch users from API")
                 }
@@ -52,18 +72,26 @@ class ApiViewModel(
         }
     }
 
-    private suspend fun insertUsersIntoDatabase(usersList: List<UserEntity>) {
+    private suspend fun insertMissingUsers(usersList: List<UserEntity>) {
         withContext(Dispatchers.IO) {
-            userDao.insertAll(usersList)
+            usersList.forEach { user ->
+                val existingUser = userDao.getUserById(user.id)
+                if (existingUser == null) {
+                    userDao.insert(user)
+                }
+            }
+            updateUsersState()
+        }
+    }
 
+    private suspend fun updateUsersState() {
+        withContext(Dispatchers.IO) {
             val usersFromDb = userDao.getAllUsers()
-            Log.d("ApiViewModel", "Users from DB after insertion: $usersFromDb")
+            Log.d("ApiViewModel", "Users from DB after update: $usersFromDb")
 
             withContext(Dispatchers.Main) {
                 users.value = usersFromDb
             }
         }
     }
-
-
 }

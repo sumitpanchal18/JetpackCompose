@@ -6,25 +6,9 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -43,7 +27,6 @@ import com.example.composekotlin.contact.room.AppDatabase
 import com.example.composekotlin.contact.room.UserDao
 
 class MainActivity : ComponentActivity() {
-    // Lazy initialization to avoid premature context usage
     private val userDao: UserDao by lazy {
         AppDatabase.getDatabase(this).userDao()
     }
@@ -91,8 +74,9 @@ fun NavController(viewModel: ApiViewModel) {
         composable("addContact") {
             AddContact(navController, viewModel = viewModel)
         }
-        composable("updateContact") {
-            UpdateContact(navController)
+        composable("updateContact/{userId}") { backStackEntry ->
+            val userId = backStackEntry.arguments?.getString("userId")?.toInt() ?: return@composable
+            UpdateContact(navController, viewModel = viewModel, userId = userId)
         }
     }
 }

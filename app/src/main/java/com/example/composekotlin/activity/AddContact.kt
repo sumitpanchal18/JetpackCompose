@@ -107,8 +107,9 @@ fun AddContact(
                     val newContact = UserEntity(
                         id = 0, // Assuming 0 for auto-generated ID
                         name = name,
-                        username = phoneNumber,
+                        phone = phoneNumber,
                         email = email,
+                        website = website,
                     )
                     viewModel.addContact(newContact)
 //                    navController?.navigate("updateContact")
