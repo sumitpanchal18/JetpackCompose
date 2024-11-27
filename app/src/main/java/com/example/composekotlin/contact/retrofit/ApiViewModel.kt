@@ -12,27 +12,55 @@ import kotlinx.coroutines.withContext
 import retrofit2.Response
 
 class ApiViewModel(
-    private val apiService: ApiService, // Retrofit service for fetching data from the API
-    private val userDao: UserDao       // Room DAO for interacting with the database
+    private val apiService: ApiService,
+    private val userDao: UserDao
 ) : ViewModel() {
 
-    // State to hold the list of users and loading state
     val users = mutableStateOf<List<UserEntity>>(emptyList())
     val loading = mutableStateOf(false)
 
-    // Function to fetch users from the API and store them in Room database
+    fun addContact(userEntity: UserEntity) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                userDao.insert(userEntity)
+                updateUsersState()
+            }
+        }
+    }
+
+    fun deleteContact(contact: UserEntity) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                userDao.deleteUser(contact)
+                updateUsersState()
+            }
+        }
+    }
+
+    suspend fun getUserById(id: Int): UserEntity? {
+        return withContext(Dispatchers.IO) {
+            userDao.getUserById(id)
+        }
+    }
+
+    fun updateContact(contact: UserEntity) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                userDao.updateUser(contact)
+                updateUsersState()
+            }
+        }
+    }
+
     fun fetchUsersFromApi() {
         viewModelScope.launch {
             loading.value = true
             try {
                 val response: Response<List<UserEntity>> = apiService.getUsers()
-
-                // Log the response from the API
                 if (response.isSuccessful && response.body() != null) {
                     val fetchedUsers = response.body()!!
-                    // Log the fetched users
                     println("Fetched users from API: $fetchedUsers")
-                    insertUsersIntoDatabase(fetchedUsers)
+                    insertMissingUsers(fetchedUsers)
                 } else {
                     println("Failed to fetch users from API")
                 }
@@ -44,21 +72,26 @@ class ApiViewModel(
         }
     }
 
-    private suspend fun insertUsersIntoDatabase(usersList: List<UserEntity>) {
+    private suspend fun insertMissingUsers(usersList: List<UserEntity>) {
         withContext(Dispatchers.IO) {
-            // Insert the users into the database
-            userDao.insertAll(usersList)
+            usersList.forEach { user ->
+                val existingUser = userDao.getUserById(user.id)
+                if (existingUser == null) {
+                    userDao.insert(user)
+                }
+            }
+            updateUsersState()
+        }
+    }
 
-            // Fetch the users from the database
+    private suspend fun updateUsersState() {
+        withContext(Dispatchers.IO) {
             val usersFromDb = userDao.getAllUsers()
-            Log.d("ApiViewModel", "Users from DB after insertion: $usersFromDb")
+            Log.d("ApiViewModel", "Users from DB after update: $usersFromDb")
 
-            // Update the UI state with the data from the database
             withContext(Dispatchers.Main) {
                 users.value = usersFromDb
             }
         }
     }
-
-
 }

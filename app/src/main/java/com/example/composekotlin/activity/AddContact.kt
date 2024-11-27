@@ -19,14 +19,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-
+import com.example.composekotlin.contact.retrofit.ApiViewModel
+import com.example.composekotlin.contact.room.UserEntity
 
 @Composable
-fun AddContact(navController: NavHostController? = null) {
+fun AddContact(
+    navController: NavHostController? = null,
+    viewModel: ApiViewModel
+) {
 
     var name by remember { mutableStateOf("") }
     var phoneNumber by remember { mutableStateOf("") }
@@ -46,8 +49,6 @@ fun AddContact(navController: NavHostController? = null) {
             style = TextStyle(
                 color = Color.DarkGray,
                 fontSize = 32.sp,
-//                fontWeight = FontWeight.Bold,
-
             )
         )
 
@@ -85,7 +86,6 @@ fun AddContact(navController: NavHostController? = null) {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 8.dp)
-
         )
 
         OutlinedTextField(
@@ -103,8 +103,20 @@ fun AddContact(navController: NavHostController? = null) {
 
         Button(
             onClick = {
-                navController!!.navigate("updateContact")
-//                navController?.popBackStack()
+                if (name.isNotBlank() && phoneNumber.isNotBlank()) {
+                    val newContact = UserEntity(
+                        id = 0, // Assuming 0 for auto-generated ID
+                        name = name,
+                        phone = phoneNumber,
+                        email = email,
+                        website = website,
+                    )
+                    viewModel.addContact(newContact)
+//                    navController?.navigate("updateContact")
+                    navController!!.popBackStack()
+                } else {
+                    // Show a toast or some error indication to the user
+                }
             },
             modifier = Modifier
                 .padding(top = 28.dp)
@@ -112,10 +124,4 @@ fun AddContact(navController: NavHostController? = null) {
             Text("Add Contact".toUpperCase())
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewAddContact() {
-    AddContact()
 }
