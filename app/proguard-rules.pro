@@ -40,5 +40,39 @@
 # Allow access to required hidden APIs (ignoring the greylist and blacklist warnings)
 # These rules disable obfuscation for specific packages or methods that access hidden APIs.
 # This is to prevent the app from crashing due to hidden API access issues.
+# Suppress warnings for Android framework hidden APIs
+-dontwarn android.app.**
+-dontwarn android.util.ArrayMap
+-dontwarn android.content.**
+-dontwarn java.lang.reflect.**
 
-# Allow access to resources manager-related fields
+
+# Keep runtime annotations
+-keepattributes RuntimeVisibleAnnotations
+
+# Keep Compose related classes and methods
+-keep class androidx.compose.runtime.** { *; }
+-dontwarn androidx.compose.runtime.**
+
+# Keep Compose compiler classes
+-keep class androidx.compose.compiler.plugins.kotlin.** { *; }
+-dontwarn androidx.compose.compiler.plugins.kotlin.**
+
+# Preserve Compose StateList and other specific classes
+-keep class androidx.compose.runtime.snapshots.SnapshotStateList { *; }
+-dontwarn androidx.compose.runtime.snapshots.SnapshotStateList
+
+# Keep other necessary classes (expand as needed)
+-keep class kotlinx.coroutines.** { *; }
+-dontwarn kotlinx.coroutines.**
+
+# Remove log statements
+-assumenosideeffects class android.util.Log {
+    public static boolean isLoggable(java.lang.String, int);
+    public static int v(...);
+    public static int d(...);
+    public static int i(...);
+    public static int w(...);
+    public static int e(...);
+    public static int wtf(...);
+}
