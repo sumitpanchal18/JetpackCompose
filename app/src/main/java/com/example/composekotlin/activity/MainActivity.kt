@@ -6,28 +6,9 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,32 +20,46 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.composekotlin.contact.retrofit.ApiViewModel
+import com.example.composekotlin.contact.retrofit.RetrofitInstance
 import com.example.composekotlin.contact.retrofit.UserListScreen
+import com.example.composekotlin.contact.room.AppDatabase
+import com.example.composekotlin.contact.room.UserDao
 
 class MainActivity : ComponentActivity() {
+    private val userDao: UserDao by lazy {
+        AppDatabase.getDatabase(this).userDao()
+    }
+
+    private val apiService by lazy {
+        RetrofitInstance.apiService
+    }
+
+    private val apiViewModel by lazy {
+        ApiViewModel(apiService, userDao)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            MyApp()
+            MyApp(apiViewModel)
         }
     }
 }
 
 @Composable
-fun MyApp() {
-    NavController()
-//    val navController = rememberNavController()
-
+fun MyApp(viewModel: ApiViewModel) {
+    NavController(viewModel)
 }
 
 @Composable
-fun NavController() {
+fun NavController(viewModel: ApiViewModel) {
     val navController = rememberNavController()
     NavHost(
         navController = navController,
         startDestination = "userList"
     ) {
-        composable("userList") { // Route for UserListScreen
+        composable("userList") {
             UserListScreen(navController)
         }
         composable("home") {
@@ -74,51 +69,36 @@ fun NavController() {
             DetailsScreen(navController)
         }
         composable("other") {
-            PracticeScreen(navController)
+            PracticeScreen()
         }
         composable("addContact") {
-            AddContact(navController)
+            AddContact(navController, viewModel = viewModel)
         }
-        composable("updateContact") {
-            UpdateContact(navController)
+        composable("updateContact/{userId}") { backStackEntry ->
+            val userId = backStackEntry.arguments?.getString("userId")?.toInt() ?: return@composable
+            UpdateContact(navController, viewModel = viewModel, userId = userId)
         }
-
     }
 }
 
-
 @Composable
-fun PracticeScreen(navController: NavHostController) {
-//    SimpleList()
+fun PracticeScreen() {
     var showDialog by remember { mutableStateOf(false) }
 
-    // Button to show the dialog
-    Button(onClick = { showDialog = true }) {
-        Text("Submit")
-    }
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Button(onClick = { showDialog = true }) {
+            Text("Submit")
+        }
 
-    // Call the SimpleDialog and pass the state and dismiss callback
-    SimpleDialog(showDialog = showDialog, onDismiss = {
-        println("Dismissed")
-        showDialog = false // Dismiss the dialog by setting the state to false
-    })
-
-
-//    InputField()
-}
-
-@Composable
-fun InputField() {
-    var text by remember { mutableStateOf("") }
-
-    Column(modifier = Modifier.padding(16.dp)) {
-        TextField(
-            value = text,
-            onValueChange = { text = it },
-            label = { Text("Enter Text") }
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text("You typed: $text")
+        SimpleDialog(showDialog = showDialog, onDismiss = {
+            Log.d("Dialog", "Dismissed")
+            showDialog = false
+        })
     }
 }
 
@@ -138,16 +118,6 @@ fun SimpleDialog(showDialog: Boolean, onDismiss: () -> Unit) {
     }
 }
 
-
-@Composable
-fun SimpleList() {
-    LazyColumn {
-        items(100) { index ->
-            Text("Item No : ${index + 1}", modifier = Modifier.padding(8.dp))
-        }
-    }
-}
-
 @Composable
 fun HomeScreen(navController: NavHostController) {
     Column(
@@ -162,9 +132,7 @@ fun HomeScreen(navController: NavHostController) {
             style = MaterialTheme.typography.headlineMedium
         )
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = {
-            navController.navigate("details")
-        }) {
+        Button(onClick = { navController.navigate("details") }) {
             Text("Go to Details Screen")
         }
     }
@@ -172,40 +140,7 @@ fun HomeScreen(navController: NavHostController) {
 
 @Composable
 fun DetailsScreen(navController: NavHostController) {
-
     val context = LocalContext.current
-    ToggleExample(context)
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Bottom,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "Details Screen",
-            style = MaterialTheme.typography.headlineMedium
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = {
-//            navController.popBackStack()
-            navController.navigate("other")
-        }) {
-            Text("Go Back to Home Screen")
-        }
-    }
-}
-
-
-@Composable
-fun ToggleExample(context: Context) {
-    var isChecked by remember {
-        mutableStateOf(false)
-    }
-    var isSwitched by remember {
-        mutableStateOf(false)
-    }
 
     Column(
         modifier = Modifier
@@ -215,21 +150,43 @@ fun ToggleExample(context: Context) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Sumit Panchal",
-            fontSize = 24.sp
+            text = "Details Screen",
+            style = MaterialTheme.typography.headlineMedium
         )
+        Spacer(modifier = Modifier.height(16.dp))
+        ToggleExample(context)
+
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = { navController.navigate("other") }) {
+            Text("Go to Practice Screen")
+        }
+    }
+}
+
+@Composable
+fun ToggleExample(context: Context) {
+    var isChecked by remember { mutableStateOf(false) }
+    var isSwitched by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(text = "Toggle Example", fontSize = 20.sp)
+
         Spacer(modifier = Modifier.height(20.dp))
         Button(
             onClick = {
                 Toast.makeText(context, "Button clicked!", Toast.LENGTH_SHORT).show()
                 Log.d("ButtonClick", "Button was clicked!")
-            }, modifier = Modifier
-                .fillMaxWidth()
+            },
+            modifier = Modifier.fillMaxWidth()
         ) {
             Text("Click Me", color = Color.White, fontSize = 20.sp)
         }
-        Spacer(modifier = Modifier.height(20.dp))
 
+        Spacer(modifier = Modifier.height(20.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             Checkbox(
                 checked = isChecked,
@@ -239,11 +196,9 @@ fun ToggleExample(context: Context) {
                 text = if (isChecked) "Checkbox is Checked" else "Checkbox is Unchecked",
                 color = if (isChecked) Color.Green else Color.Red
             )
-
         }
 
         Spacer(modifier = Modifier.height(20.dp))
-
         Row(verticalAlignment = Alignment.CenterVertically) {
             Switch(
                 checked = isSwitched,
@@ -251,60 +206,11 @@ fun ToggleExample(context: Context) {
             )
             Text("Switch", modifier = Modifier.padding(start = 8.dp))
         }
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-//        BoxExample()
-
-        Counter()
-
-        /*
-                 IconButton(
-                     onClick = {
-                         Toast.makeText(context, "Image Button Clicked!", Toast.LENGTH_SHORT).show()
-
-                     },
-                     modifier = Modifier.size(200.dp, 200.dp)
-                 ) {
-                     Image(
-                         painter = painterResource(id = R.drawable.car),
-                         contentDescription = "Button Image",
-                         modifier = Modifier.fillMaxSize()
-                     )
-                 }*/
     }
 }
-
-@Composable
-fun Counter() {
-    var count by remember { mutableStateOf(0) }
-
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = "Count: $count", fontSize = 24.sp)
-        Button(onClick = { count++ }) {
-            Text("Increment")
-        }
-    }
-}
-
-@Composable
-fun BoxExample() {
-    var sliderPosition by remember {
-        mutableStateOf(0f)
-    }
-
-    Slider(
-        value = sliderPosition,
-        onValueChange = { sliderPosition = it },
-        valueRange = 0f..100f,
-        steps = 100,
-        modifier = Modifier.padding(16.dp)
-    )
-}
-
 
 @Preview(showBackground = true)
 @Composable
 fun PreviewMyApp() {
-    MyApp()
+    MyApp(viewModel = ApiViewModel(RetrofitInstance.apiService, AppDatabase.getDatabase(LocalContext.current).userDao()))
 }
